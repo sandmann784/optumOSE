@@ -1,0 +1,35 @@
+########################################################################
+# Dockerfile for a member of a replicaset.
+#
+# To build:
+#     docker build -f Dockerfile-3.4.4 \
+#                  --tag=docker.optum.com/dms/mongodb:3.4.4 .
+#
+# To run:
+#     docker run --privileged --name mongodb -i -t -d -p 27017:27017 
+#                -v /tmp/dockerdata:/data/db mongodb:3.4.4 [options]
+#
+#
+########################################################################
+
+FROM ubuntu:16.04
+
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+
+RUN echo "deb [ arch=amd64,arm64,ppc64el,s390x ] http://repo.mongodb.com/apt/ubuntu xenial/mongodb-enterprise/3.4 multiverse" | tee /etc/apt/sources.list.d/mongodb-enterprise.list
+
+RUN apt-get update
+
+RUN apt-get install sudo
+
+# Update and install packages.
+RUN apt-get install -y mongodb-enterprise
+
+# Create the default data directory.  When --dbpath is not specified, MongoDB uses /data/db as the data directory.
+RUN mkdir -p /data/db && chown mongodb:mongodb /data/db
+
+EXPOSE 47017
+
+ENTRYPOINT ["/usr/bin/sudo", "-u", "mongodb", "/usr/bin/mongod", "--dbpath", "/data/db"]
+#CMD ["/bin/sleep", "50m"]
+
